@@ -1,0 +1,11 @@
+[package]
+name = "dbusgraft"
+version = "0.1.0"
+edition = "2021"
+
+[dependencies]
+aargvark = "0.8"
+dbus = "0.9"
+dbus-tokio = "0.7"
+loga = "0.5"
+tokio = { version = "1", features = ["rt", "macros", "signal"] }
