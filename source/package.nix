@@ -11,11 +11,11 @@ pkgs.callPackage (
     pname = "dbusgraft";
     root = ./.;
     nativeBuildInputs = [
-      pkgs.pkg-config
-      pkgs.llvmPackages.libclang
+      # pkgs.pkg-config
+      # pkgs.llvmPackages.libclang
     ];
     buildInputs = [
-      pkgs.dbus
+      # pkgs.dbus
     ];
   }
 ) { }

@@ -1931,7 +1931,6 @@ dependencies = [
 [[package]]
 name = "zbus"
 version = "5.5.0"
-source = "git+https://github.com/andrewbaxter/fork-zbus?rev=f5bf9a4d8c133d6d86a44d6b0e09bea00f0538a7#f5bf9a4d8c133d6d86a44d6b0e09bea00f0538a7"
 dependencies = [
  "async-broadcast",
  "async-executor",
@@ -1963,7 +1962,6 @@ dependencies = [
 [[package]]
 name = "zbus_macros"
 version = "5.5.0"
-source = "git+https://github.com/andrewbaxter/fork-zbus?rev=f5bf9a4d8c133d6d86a44d6b0e09bea00f0538a7#f5bf9a4d8c133d6d86a44d6b0e09bea00f0538a7"
 dependencies = [
  "proc-macro-crate",
  "proc-macro2",
@@ -1977,7 +1975,6 @@ dependencies = [
 [[package]]
 name = "zbus_names"
 version = "4.2.0"
-source = "git+https://github.com/andrewbaxter/fork-zbus?rev=f5bf9a4d8c133d6d86a44d6b0e09bea00f0538a7#f5bf9a4d8c133d6d86a44d6b0e09bea00f0538a7"
 dependencies = [
  "serde",
  "winnow",
@@ -1987,7 +1984,6 @@ dependencies = [
 [[package]]
 name = "zvariant"
 version = "5.4.0"
-source = "git+https://github.com/andrewbaxter/fork-zbus?rev=f5bf9a4d8c133d6d86a44d6b0e09bea00f0538a7#f5bf9a4d8c133d6d86a44d6b0e09bea00f0538a7"
 dependencies = [
  "endi",
  "enumflags2",
@@ -2000,7 +1996,6 @@ dependencies = [
 [[package]]
 name = "zvariant_derive"
 version = "5.4.0"
-source = "git+https://github.com/andrewbaxter/fork-zbus?rev=f5bf9a4d8c133d6d86a44d6b0e09bea00f0538a7#f5bf9a4d8c133d6d86a44d6b0e09bea00f0538a7"
 dependencies = [
  "proc-macro-crate",
  "proc-macro2",
@@ -2012,7 +2007,6 @@ dependencies = [
 [[package]]
 name = "zvariant_utils"
 version = "3.2.0"
-source = "git+https://github.com/andrewbaxter/fork-zbus?rev=f5bf9a4d8c133d6d86a44d6b0e09bea00f0538a7#f5bf9a4d8c133d6d86a44d6b0e09bea00f0538a7"
 dependencies = [
  "proc-macro2",
  "quote",

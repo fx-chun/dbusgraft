@@ -10,4 +10,4 @@ loga = "0.5"
 moka = { version = "0.12", features = ["future"] }
 tokio = { version = "1", features = ["rt", "macros", "signal"] }
 tokio-util = "0.7"
-zbus = { path = "./fork-zbus" }
+zbus = { path = "./fork-zbus/zbus" }
