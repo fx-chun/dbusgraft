@@ -22,12 +22,9 @@ use {
         num::NonZero,
         time::Duration,
     },
-    tokio::{
-        task::yield_now,
-    },
+    tokio::task::yield_now,
     tokio_util::sync::CancellationToken,
     zbus::{
-        message::PrimaryHeader,
         names::{
             InterfaceName,
             UniqueName,
@@ -73,16 +70,17 @@ async fn side(
                 "Got message",
                 ea!(msg = msg.dbg_str(), body = String::from_utf8_lossy(&msg.data())),
             );
-            let mut header = msg.header();
+            let header = msg.header();
             if header.member().map(|x| x.as_str()) == Some("NameAcquired") {
                 // https://github.com/dbus2/zbus/issues/1318
                 continue;
             }
-            if let Some(reply_id) = header.reply_serial() {
-                let Some(reply_info) = forward.remove(&reply_id).await else {
+            let mut out = zbus::message::Builder::from(header.clone());
+            if let Some(reply_serial) = header.reply_serial() {
+                let Some(reply_info) = forward.remove(&reply_serial).await else {
                     log.log_with(
                         loga::WARN,
-                        format!("Couldn't find destination request for reply to [{}]", reply_id),
+                        format!("Couldn't find destination request for reply to [{}]", reply_serial),
                         ea!(msg = msg.dbg_str(), body = String::from_utf8_lossy(&msg.data())),
                     );
                     continue;
@@ -92,8 +90,10 @@ async fn side(
                     //.     continue;
                     //. },
                     ReplyType::Remote(remote_info) => {
-                        header.fields_mut().destination = remote_info.destination.map(|x| x.into());
-                        header.fields_mut().reply_serial = Some(remote_info.serial);
+                        if let Some(destination) = remote_info.destination {
+                            out = out.destination(destination).unwrap();
+                        }
+                        out = out.reply_serial(Some(remote_info.serial));
                     },
                 }
             } else {
@@ -115,35 +115,35 @@ async fn side(
                             return Ok(resp.body().deserialize::<UniqueName<'_>>()?.to_owned()) as
                                 Result<_, loga::Error>;
                         }).await.map_err(loga::err)?;
-                        header.fields_mut().destination = Some(dest_name.into());
+                        out = out.destination(dest_name).unwrap();
                     }
                 }
             };
 
             // # Forward...
-            let new_serial = PrimaryHeader::new(zbus::message::Type::MethodCall, 0).serial_num();
+            let new_serial = zbus::message::PrimaryHeader::new(zbus::message::Type::MethodCall, 100).serial_num();
 
             // Add reply lookup - generated reply serial to original sender + reply serial
             reverse.insert(new_serial, ReplyType::Remote(ReplyTypeRemote {
-                destination: header.fields_mut().sender.as_ref().map(|x| x.to_owned()),
+                destination: header.sender().as_ref().map(|x| (*x).to_owned()),
                 serial: header.primary().serial_num(),
             })).await;
 
             // Replace the serial
-            header.primary_mut().set_serial_num(new_serial);
-            header.fields_mut().sender = dest_tx.unique_name().map(|x| x.into());
+            out = out.serial(new_serial);
+            if let Some(x) = dest_tx.unique_name() {
+                out = out.sender(x).unwrap();
+            }
 
             // Build the message and send
             let sig = header.signature().clone();
             let msg = unsafe {
-                zbus::message::Builder::new_from_header(header)
-                    .build_raw_body(&msg.body().data(), sig, msg.data().fds().iter().map(|x| match x {
-                        zbus::zvariant::Fd::Borrowed(_borrowed_fd) => panic!(),
-                        zbus::zvariant::Fd::Owned(owned_fd) => zbus::zvariant::OwnedFd::from(
-                            owned_fd.try_clone().unwrap(),
-                        ),
-                    }).collect())
-                    .unwrap()
+                out.build_raw_body(&msg.body().data(), sig, msg.data().fds().iter().map(|x| match x {
+                    zbus::zvariant::Fd::Borrowed(_borrowed_fd) => panic!(),
+                    zbus::zvariant::Fd::Owned(owned_fd) => zbus::zvariant::OwnedFd::from(
+                        owned_fd.try_clone().unwrap(),
+                    ),
+                }).collect()).unwrap()
             };
             log.log_with(
                 loga::DEBUG,
