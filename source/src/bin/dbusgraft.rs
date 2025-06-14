@@ -58,11 +58,12 @@ async fn side(
     mut source_rx: MessageStream,
     dest_tx: Connection,
     dest_names: NameCache,
+    busname: String
 ) -> Option<Result<(), loga::Error>> {
     let _die = die.clone().drop_guard();
     return die.run_until_cancelled_owned(async move {
         loop {
-            let Some(msg) = source_rx.try_next().await.context("Error receiving message from upstream")? else {
+            let Some(msg) = source_rx.try_next().await.context("Error receiving message from source")? else {
                 break;
             };
             log.log_with(
@@ -108,7 +109,7 @@ async fn side(
                                         "/org/freedesktop/DBus",
                                         Some("org.freedesktop.DBus"),
                                         "GetNameOwner",
-                                        &iface,
+                                        &busname,
                                     )
                                     .await
                                     .context_with("Error looking up destination name", ea!(name = iface))?;
@@ -150,7 +151,7 @@ async fn side(
                 "Forwarding translated message",
                 ea!(msg = msg.dbg_str(), body = String::from_utf8_lossy(&msg.data())),
             );
-            dest_tx.send(&msg).await.context("Error forwarding upstream message downstream")?;
+            dest_tx.send(&msg).await.context("Error forwarding upstream message to destination")?;
         }
         return Ok(()) as Result<(), loga::Error>;
     }).await;
@@ -215,6 +216,7 @@ async fn main1() -> Result<(), loga::Error> {
                 MessageStream::from(&upstream),
                 downstream.clone(),
                 downstream_names.clone(),
+                name.clone()
             ),
         );
         tasks.push(
@@ -226,6 +228,7 @@ async fn main1() -> Result<(), loga::Error> {
                 MessageStream::from(&downstream),
                 upstream.clone(),
                 upstream_names.clone(),
+                name.clone()
             ),
         );
     }
